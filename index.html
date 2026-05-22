@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>彩の国100mile 2026 全選手軌跡</title>
+<title>彩の国100mile、全員の35時間</title>
 <style>
   :root {
     --bg: #fbfaf7;
@@ -21,7 +21,7 @@
   .chart-stage { position: relative; }
   h1 { font-size: 24px; margin: 0 0 4px; }
   .subtitle { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
-  svg { width: 100%; height: calc(100vh - 86px); min-height: 640px; display: block; background: #fffdf8; border: 1px solid #e7e0d6; touch-action: none; cursor: grab; }
+  svg { width: 100%; height: calc((100vh - 86px) * 1.5); min-height: 960px; display: block; background: #fffdf8; border: 1px solid #e7e0d6; touch-action: none; cursor: grab; }
   svg.panning { cursor: grabbing; }
   .panel { border-left: 1px solid #e1d9cf; background: #fffdf8; padding: 16px; overflow: auto; max-height: 100vh; }
   .panel h2 { font-size: 17px; margin: 0 0 10px; }
@@ -76,14 +76,14 @@
   @media (max-width: 980px) {
     .app { grid-template-columns: 1fr; }
     .panel { border-left: 0; border-top: 1px solid #e1d9cf; max-height: none; }
-    svg { height: 105vh; }
+    svg { height: 105svh; min-height: 960px; }
   }
 </style>
 </head>
 <body>
 <div class="app">
   <main class="chart-wrap">
-    <h1>彩の国100mile 2026 全選手の軌跡</h1>
+    <h1>彩の国100mile、全員の35時間</h1>
     <p class="subtitle">完走者は青、DNF者はオレンジ。記録が欠けたCPは前後の実測タイムから仮補間して線を引いています。</p>
     <div class="chart-stage">
       <svg id="chart" viewBox="0 0 1700 1080" role="img" aria-label="彩の国100mile 2026 全選手軌跡グラフ"></svg>
