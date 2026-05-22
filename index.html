@@ -76,7 +76,7 @@
   @media (max-width: 980px) {
     .app { grid-template-columns: 1fr; }
     .panel { border-left: 0; border-top: 1px solid #e1d9cf; max-height: none; }
-    svg { height: 152vw; min-height: 760px; }
+    svg { height: calc((100vw - 40px) * 1.52); min-height: 760px; }
   }
 </style>
 </head>
@@ -133,7 +133,11 @@ const data = JSON.parse(document.getElementById('race-data').textContent);
 const svg = document.getElementById('chart');
 const tooltip = document.getElementById('tooltip');
 const NS = 'http://www.w3.org/2000/svg';
-const W = 1700, H = 1620;
+const W = 1700;
+const DESKTOP_H = 1620;
+const MOBILE_H = 2584;
+const mobileMedia = window.matchMedia('(max-width: 980px)');
+let H = mobileMedia.matches ? MOBILE_H : DESKTOP_H;
 const ml = 110, mr = 265, mt = 70, mb = 95;
 const xmax = 35.2, ymax = 162.8;
 const palette = ['#e4572e','#2f80ed','#1a936f','#8e44ad','#d99000','#007f7f','#c0392b','#5c6bc0','#6d4c41','#2e7d32'];
@@ -446,6 +450,18 @@ svg.addEventListener('wheel', event => {
 svg.addEventListener('dblclick', () => {
   setViewBox({x:0, y:0, w:W, h:H});
 });
+function syncChartGeometry() {
+  const nextH = mobileMedia.matches ? MOBILE_H : DESKTOP_H;
+  if (nextH === H) return;
+  H = nextH;
+  setViewBox({x:0, y:0, w:W, h:H});
+  draw();
+}
+if (mobileMedia.addEventListener) {
+  mobileMedia.addEventListener('change', syncChartGeometry);
+} else {
+  mobileMedia.addListener(syncChartGeometry);
+}
 svg.addEventListener('pointerdown', event => {
   if (event.button != null && event.button !== 0) return;
   if (svg.setPointerCapture) svg.setPointerCapture(event.pointerId);
