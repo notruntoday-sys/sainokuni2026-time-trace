@@ -21,8 +21,7 @@
   .chart-stage { position: relative; }
   h1 { font-size: 24px; margin: 0 0 4px; }
   .subtitle { color: var(--muted); margin: 0 0 12px; font-size: 14px; }
-  svg { width: 100%; height: calc((100vw - 380px) * 0.95); min-height: 960px; display: block; background: #fffdf8; border: 1px solid #e7e0d6; touch-action: none; cursor: grab; }
-  svg.panning { cursor: grabbing; }
+  svg { width: 100%; height: calc((100vw - 380px) * 0.95); min-height: 960px; display: block; background: #fffdf8; border: 1px solid #e7e0d6; touch-action: none; }
   .panel { border-left: 1px solid #e1d9cf; background: #fffdf8; padding: 16px; overflow: auto; max-height: 100vh; }
   .panel h2 { font-size: 17px; margin: 0 0 10px; }
   .site-footer { border-top: 1px solid #e1d9cf; padding: 18px 20px 24px; background: #fffdf8; }
@@ -145,7 +144,6 @@ let selected = new Set();
 let viewBox = {x:0, y:0, w:W, h:H};
 let activePointers = new Map();
 let pinchStart = null;
-let panStart = null;
 let suppressNextClick = false;
 const groupVisibility = {
   top20: false,
@@ -463,21 +461,10 @@ if (mobileMedia.addEventListener) {
   mobileMedia.addListener(syncChartGeometry);
 }
 svg.addEventListener('pointerdown', event => {
-  if (event.button != null && event.button !== 0) return;
-  if (svg.setPointerCapture) svg.setPointerCapture(event.pointerId);
-  panStart = {
-    id: event.pointerId,
-    x: event.clientX,
-    y: event.clientY,
-    viewBox: {...viewBox},
-    moved: false,
-  };
-  svg.classList.add('panning');
   if (event.pointerType === 'touch') {
     activePointers.set(event.pointerId, {x:event.clientX, y:event.clientY});
     if (activePointers.size === 2) {
       const points = [...activePointers.values()];
-      panStart = null;
       pinchStart = {
         distance: Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y),
         viewBox: {...viewBox},
@@ -490,39 +477,17 @@ svg.addEventListener('pointerdown', event => {
   }
 });
 svg.addEventListener('pointermove', event => {
-  if (activePointers.has(event.pointerId)) {
-    activePointers.set(event.pointerId, {x:event.clientX, y:event.clientY});
-    if (pinchStart && activePointers.size === 2) {
-      const points = [...activePointers.values()];
-      const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-      if (!distance) return;
-      viewBox = {...pinchStart.viewBox};
-      zoomAt(pinchStart.center.x, pinchStart.center.y, pinchStart.distance / distance);
-      return;
-    }
-  }
-  if (!panStart || panStart.id !== event.pointerId) return;
-  const box = svg.getBoundingClientRect();
-  const dx = ((event.clientX - panStart.x) / box.width) * panStart.viewBox.w;
-  const dy = ((event.clientY - panStart.y) / box.height) * panStart.viewBox.h;
-  if (Math.hypot(event.clientX - panStart.x, event.clientY - panStart.y) > 3) panStart.moved = true;
-  setViewBox({
-    x: panStart.viewBox.x - dx,
-    y: panStart.viewBox.y - dy,
-    w: panStart.viewBox.w,
-    h: panStart.viewBox.h,
-  });
+  if (!activePointers.has(event.pointerId)) return;
+  activePointers.set(event.pointerId, {x:event.clientX, y:event.clientY});
+  if (!pinchStart || activePointers.size !== 2) return;
+  const points = [...activePointers.values()];
+  const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+  if (!distance) return;
+  viewBox = {...pinchStart.viewBox};
+  zoomAt(pinchStart.center.x, pinchStart.center.y, pinchStart.distance / distance);
 });
 ['pointerup','pointercancel','pointerleave'].forEach(type => {
   svg.addEventListener(type, event => {
-    if (panStart && panStart.id === event.pointerId) {
-      if (panStart.moved) {
-        suppressNextClick = true;
-        setTimeout(() => { suppressNextClick = false; }, 300);
-      }
-      panStart = null;
-      svg.classList.remove('panning');
-    }
     activePointers.delete(event.pointerId);
     if (activePointers.size < 2) pinchStart = null;
   });
